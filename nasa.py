@@ -6,7 +6,6 @@ from io import BytesIO
 
 NASA_ENDPOINT = "https://api.nasa.gov/planetary/apod"
 API_KEY = "Pe6gqyxa8Os3ydb4WKPnlhTUlaZ6Kb77z3dHhaip"
-SOLAR_FLARE_ENDPOINT = "https://api.nasa.gov/DONKI/notifications"
 
 picture_today = {
     "api_key": API_KEY,
