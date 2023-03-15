@@ -1,73 +1,73 @@
+from io import BytesIO
 from tkinter import *
+from tkinter import ttk
+from urllib.request import urlopen
+
 import requests
 from PIL import Image, ImageTk
-from urllib.request import urlopen
-from io import BytesIO
 
 NASA_ENDPOINT = "https://api.nasa.gov/planetary/apod"
 API_KEY = "Pe6gqyxa8Os3ydb4WKPnlhTUlaZ6Kb77z3dHhaip"
 
-picture_today = {
-    "api_key": API_KEY,
-}
+class NasaPictureApp:
+    def __init__(self):
+        self.picture_today = {"api_key": API_KEY}
+        self.response = requests.get(NASA_ENDPOINT, params=self.picture_today)
+        self.data = self.response.json()
+        self.title_image = self.data["title"]
+        self.info_data = self.data["explanation"]
+        self.current_date = self.data["date"]
+        self.image_url = self.data["url"]
+        self.image_raw = urlopen(self.image_url).read()
+        self.im = Image.open(BytesIO(self.image_raw)).resize((600, 600))
+        self.setup_main_window()
 
-# Picture of day data
-response = requests.get(NASA_ENDPOINT, params=picture_today)
-data = response.json()
+    def setup_main_window(self):
+        self.window = Tk()
+        self.window.title("Nasa picture of day")
+        self.window.config(bg="black", padx=15, pady=10)
 
-# Picture
-title_image = data['title']
-info_data = data['explanation']
-current_date = data['date']
+        self.nasa_logo = PhotoImage(file="nasa_logo.png")
+        self.nasa_label = Label(self.window, image=self.nasa_logo)
+        self.nasa_label.grid(row=0, column=1, columnspan=2)
 
-# URL picture
-image_url = data['url']
-image = urlopen(image_url)
-image_raw = image.read()
-image.close()
-im = Image.open(BytesIO(image_raw)).resize((600, 600))
+        self.today_button = Button(self.window, text="Today's picture", width=15, command=self.show_today_image)
+        self.today_button.grid(row=2, column=1, pady=15, columnspan=2)
 
-# Main window
-window = Tk()
-window.title("Nasa picture of day")
-window.geometry("280x280")
-window.config(bg="black", padx=15, pady=10)
+        self.window.mainloop()
 
+    def show_today_image(self):
+        self.today_window = Toplevel()
+        self.today_window.title(self.title_image)
+        self.today_window.config(bg="black", padx=10, pady=10)
 
-# Function canvas with today's image
-def today_image():
-    window.destroy()
-    new_window = Tk()
-    new_window.title(title_image)
-    new_window.config(bg='black', padx=10, pady=10)
-    canvas = Canvas(new_window, width=700, height=650, bg='black', highlightthickness=0)
-    photo = ImageTk.PhotoImage(im)
-    label = Label(image=photo)
-    date_label = Label(new_window, text=current_date, bg='black', fg='white')
-    info_button = Button(new_window, text="Description", command=today_des)
-    label.image = photo
-    canvas.grid()
-    label.grid(row=0, column=0)
-    info_button.grid(row=1, column=0, columnspan=2, sticky='s')
-    date_label.grid(row=0, column=0, columnspan=2, sticky='n')
-    new_window.mainloop()
+        self.tabs = ttk.Notebook(self.today_window)
+        self.picture_tab = Frame(self.tabs, bg="black")
+        self.info_tab = Frame(self.tabs, bg="black")
 
+        self.tabs.add(self.picture_tab, text="Picture")
+        self.tabs.add(self.info_tab, text="Information")
 
-def today_des():
-    info_window = Tk()
-    info_window.title(title_image)
-    info_window.config(bg='black', padx=20, pady=10)
-    info_label = Label(info_window, text=info_data, wraplength=300, justify='left', bg='black', fg='white')
-    info_label.grid()
+        self.canvas = Canvas(self.picture_tab, width=700, height=650, bg="black", highlightthickness=0)
+        self.photo = ImageTk.PhotoImage(self.im)
+        self.canvas.create_image(0, 0, anchor=NW, image=self.photo)
+        self.date_label = Label(self.picture_tab, text=self.current_date, bg="black", fg="white")
+        self.info_button = Button(self.picture_tab, text="More Information", command=self.show_more_info)
+
+        self.canvas.pack()
+        self.date_label.pack(side=TOP, pady=10)
+        self.info_button.pack(side=BOTTOM, pady=10)
+
+        self.info_label = Label(self.info_tab, text=self.info_data, wraplength=600, justify="left", bg="black",
+                                fg="white")
+        self.info_label.pack(side=LEFT, padx=10)
+
+        self.tabs.pack(fill=BOTH, expand=1)
+
+    def show_more_info(self):
+        self.tabs.select(self.info_tab)
 
 
-# Label for main window
-nasa_logo = PhotoImage(file="nasa_logo.png")
-nasa_label = Label(window, image=nasa_logo)
-nasa_label.grid(row=0, column=1, columnspan=2)
+if __name__ == "__main__":
+    app = NasaPictureApp()
 
-# Buttons for main window
-today_button = Button(window, text="Today's picture", width=15, command=today_image)
-today_button.grid(row=2, column=1, pady=15, columnspan=2)
-
-window.mainloop()
