@@ -2,7 +2,6 @@ from io import BytesIO
 from tkinter import *
 from tkinter import ttk
 from urllib.request import urlopen
-
 import requests
 from PIL import Image, ImageTk
 
